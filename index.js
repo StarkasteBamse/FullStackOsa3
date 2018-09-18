@@ -3,13 +3,14 @@ const app = express();
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cors = require('cors')
-
+const Person = require('./models/person')
 
 app.use(
     cors(),
     bodyParser.json(),
     express.static('build')
 );
+
 morgan.token('body', function (req, res) { return JSON.stringify(req.body) });
 app.use(morgan(':method :url :body :status :res[content-length] - :response-time ms'));
 
@@ -21,7 +22,11 @@ let persons = [
 ];
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons);
+    Person
+        .find({})
+        .then(people => {
+            res.json(people.map(Person.format))
+        });
 });
 
 app.get('/info', (req, res) => {
@@ -47,12 +52,28 @@ app.delete('/api/persons/:id', (req, res) => {
 });
 
 app.post('/api/persons', (req, res) => {
-    if (req.body.name === undefined) {
+    const body = req.body;
+    if (body.name === undefined) {
         return res.status(400).json({ error: 'missing name' });
     };
-    if (req.body.number === undefined) {
+    if (body.number === undefined) {
         return res.status(400).json({ error: 'missing number' });
     };
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    });
+
+    person
+        .save()
+        .then(savedPerson => {
+            res.json(Person.format(savedPerson));
+        }).catch(error => {
+            console.log(error);
+        });
+    
+    
+    /*
     if (persons.find(person => person.name === req.body.name)) {
         return res.status(400).json({ error: 'name must be unique' });
     };
@@ -66,6 +87,7 @@ app.post('/api/persons', (req, res) => {
     persons = persons.concat(person)
 
     res.json(person);
+    */
 });
 
 const PORT = process.env.PORT || 3001
