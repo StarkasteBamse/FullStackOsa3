@@ -75,13 +75,22 @@ app.post('/api/persons', (req, res) => {
         number: body.number
     });
 
-    person
-        .save()
-        .then(savedPerson => {
-            res.json(Person.format(savedPerson));
-        }).catch(error => {
-            console.log(error);
-        });
+    Person
+        .find({name: person.name})
+        .then(result => {
+            if(result.length > 0) {
+                res.status(409).json({ error: 'name already in use'})
+            } else {
+                person
+                .save()
+                .then(savedPerson => {
+                    res.json(Person.format(savedPerson));
+                }).catch(error => {
+                    console.log(error);
+                });
+            }
+        })  
+   
 });
 
 app.put('/api/persons/:id', (req, res) => {

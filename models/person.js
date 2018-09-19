@@ -1,6 +1,8 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
 const mongoose = require('mongoose');
-const url = `mongodb://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_NAME}`;
+const url = process.env.MONGODB_URI
 mongoose.connect(url, { useNewUrlParser: true });
 
 let Schema = mongoose.Schema;
